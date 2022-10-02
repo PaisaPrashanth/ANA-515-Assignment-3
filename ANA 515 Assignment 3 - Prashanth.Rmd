@@ -1,0 +1,70 @@
+---
+title: "ANA 515 Assignment 3"
+author: "Prashanth Paisa"
+date: "2022-10-01"
+output: html_document
+---
+
+```{r}
+strom_data = read.csv("StormEvents_details-ftp_v1.0_d1990_c20220425.csv")
+head(strom_data, 5)
+```
+```{r}
+colnames(strom_data)
+```
+
+```{r}
+myvars <- c("BEGIN_YEARMONTH", "BEGIN_DAY", "BEGIN_TIME", "END_YEARMONTH", "END_DAY", "END_TIME", "EPISODE_ID", "EVENT_ID","STATE", "STATE_FIPS", "CZ_NAME","CZ_TYPE","CZ_FIPS", "EVENT_TYPE", "SOURCE", "BEGIN_LAT", "BEGIN_LON"   , "END_LAT", "END_LON")
+strom_data <- strom_data[myvars]
+head(strom_data, 5)
+```
+```{r}
+library(dplyr)
+strom_data <- arrange(strom_data, BEGIN_YEARMONTH)
+head(strom_data, 5)
+```
+```{r}
+strom_data$STATE <- toupper(strom_data$STATE)
+strom_data <- filter(strom_data, strom_data$CZ_TYPE == "C")
+strom_data <-  select(strom_data, -CZ_TYPE)
+head(strom_data, 5)
+```
+```{r}
+library(stringr)
+library(dplyr)
+library(tidyr)
+str_pad("STATE_FIPS", width = 3, side = "left", pad = "0")
+str_pad("CZ_FIPS", width = 3, side = "left", pad = "0")
+unite(strom_data, "FIPS", sep="" ,c("CZ_FIPS","STATE_FIPS"))
+```
+```{r}
+rename_all(strom_data, tolower)
+```
+```{r}
+us_state_info<-data.frame(state=state.name, region=state.region, area=state.area)
+us_state_info
+```
+```{r}
+us_state_info$STATE <- toupper(us_state_info$state)
+us_state_info <-  select(us_state_info, -state)
+us_state_info
+
+```
+```{r}
+Newset<- data.frame(table(strom_data$STATE))
+newset1<-rename(Newset, c("STATE"="Var1"))
+newset1
+```
+```{r}
+merged <- merge(x=newset1, y=us_state_info, by.x = "STATE", by.y = "STATE")
+head(merged)
+```
+```{r}
+library(ggplot2)
+plot_strom <- ggplot(merged, aes(x=area, y=Freq)) +
+  geom_point(aes(color = region)) +
+  labs(x="Land Area (Square Miles)",
+       y="# of stroms events in 1991")
+plot_strom
+```
+
